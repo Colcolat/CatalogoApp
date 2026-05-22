@@ -27,6 +27,21 @@
                         <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                     </li>
                 </ul>
+                <div class="d-flex align-items-center">
+                    @if (Context.Session.GetString("Username") != null)
+                    {
+                        <span class="me-3">👤 @Context.Session.GetString("Username")</span>
+                        <a class="btn btn-sm btn-outline-secondary"
+                           asp-controller="Account" asp-action="Logout">Cerrar sesión</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm btn-outline-primary me-2"
+                           asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+                        <a class="btn btn-sm btn-primary"
+                           asp-controller="Account" asp-action="Register">Registrarse</a>
+                    }
+                </div>
             </div>
         </div>
     </nav>
