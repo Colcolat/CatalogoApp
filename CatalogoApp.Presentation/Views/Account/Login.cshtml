@@ -1,0 +1,21 @@
+﻿<h1>Iniciar sesión</h1>
+
+@if (ViewBag.Error != null)
+{
+    <p style="color:red">@ViewBag.Error</p>
+}
+
+<form method="post">
+    <div class="mb-3">
+        <label>Usuario</label>
+        <input name="username" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label>Contraseña</label>
+        <input name="password" type="password" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Entrar</button>
+</form>
+
+<hr />
+<a asp-controller="Account" asp-action="Register">¿No tienes cuenta? Regístrate</a>
