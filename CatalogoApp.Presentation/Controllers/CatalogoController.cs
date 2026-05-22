@@ -1,76 +1,68 @@
-﻿using CatalogoApp.Domain.Models;
+﻿using CatalogoApp.Application.Services;
+using CatalogoApp.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
- 
-namespace Catalogo.Controllers
+
+namespace CatalogoApp.Presentation.Controllers;
+
+public class CatalogoController : Controller
 {
-    public class CatalogoController : Controller
+    private readonly ItemService _itemService;
+    private readonly ReviewService _reviewService;
+
+    public CatalogoController(ItemService itemService, ReviewService reviewService)
     {
-        /* CatalogoController
-         * ==================
-         * 
-         * Controlador encargado de gestionar el flujo de datos
-         * del catálogo de videojuegos.
-         * 
-         * Su función es recibir las peticiones del usuario,
-         * consultar la lista de items y devolver la vista
-         * correspondiente.
-         * * * * */
- 
-        private static List<Item> _items = new()
-        {
-            new Item {
-                Id          = 1,
-                Titulo      = "Devil May Cry",
-                Genero      = "Hack and Slash",
-                Ano         = 2001,
-                Consola     = "PlayStation 2",
-                Descripcion = "Videojuego que trata de un cazador mitad humano mitad demonio que debe evitar el regreso del rey del infierno."
-            },
-            new Item {
-                Id          = 2,
-                Titulo      = "Castlevania: Symphony of the Night",
-                Genero      = "Metroidvania",
-                Ano         = 1997,
-                Consola     = "PlayStation 2",
-                Descripcion = "Videojuego que trata de un cazador vampiro que debe detener a su padre, el conde Drácula."
-            },
-            new Item {
-                Id          = 3,
-                Titulo      = "NieR: Automata",
-                Genero      = "Acción-RPG",
-                Ano         = 2017,
-                Consola     = "PlayStation 4",
-                Descripcion = "Videojuego que trata de unos androides de batalla que deben detener a las máquinas alienígenas."
-            }
-        };
-        public IActionResult Index(string? genero)
-        {
-            var resultado = string.IsNullOrEmpty(genero)
-                ? _items
-                : _items.Where(i => i.Genero == genero).ToList();
- 
-            ViewBag.Generos = _items.Select(i => i.Genero).Distinct().ToList();
-            ViewBag.GeneroActual = genero;
-            return View(resultado);
-        }
- 
-        public IActionResult Detalle(int id)
-        {
-            var item = _items.FirstOrDefault(i => i.Id == id);
-            return item == null ? NotFound() : View(item);
-        }
- 
-        public IActionResult Agregar()
-        {
-            return View();
-        }
- 
-        [HttpPost]
-        public IActionResult Agregar(Item item)
-        {
-            item.Id = _items.Count + 1;
-            _items.Add(item);
-            return RedirectToAction("Index");
-        }
+        _itemService = itemService;
+        _reviewService = reviewService;
+    }
+
+    public IActionResult Index(string? genero)
+    {
+        var items = string.IsNullOrEmpty(genero)
+            ? _itemService.ObtenerTodos()
+            : _itemService.ObtenerPorGenero(genero);
+
+        ViewBag.Generos = _itemService.ObtenerGeneros();
+        ViewBag.GeneroActual = genero;
+        return View(items);
+    }
+
+    public IActionResult Detalle(int id)
+    {
+        var item = _itemService.ObtenerPorId(id);
+        if (item == null) return NotFound();
+
+        ViewBag.Reviews = _reviewService.ObtenerPorItem(id);
+        ViewBag.UsuarioLogueado = HttpContext.Session.GetString("Username");
+        return View(item);
+    }
+
+    // Solo logueados pueden ver el formulario de agregar
+    public IActionResult Agregar()
+    {
+        if (HttpContext.Session.GetString("Username") == null)
+            return RedirectToAction("Login", "Account");
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult Agregar(Item item)
+    {
+        if (HttpContext.Session.GetString("Username") == null)
+            return RedirectToAction("Login", "Account");
+
+        _itemService.Agregar(item);
+        return RedirectToAction("Index");
+    }
+
+    [HttpPost]
+    public IActionResult AgregarReview(Review review)
+    {
+        var usuario = HttpContext.Session.GetString("Username");
+        if (usuario == null)
+            return RedirectToAction("Login", "Account");
+
+        review.Autor = usuario;
+        _reviewService.Agregar(review);
+        return RedirectToAction("Detalle", new { id = review.ItemId });
     }
 }
