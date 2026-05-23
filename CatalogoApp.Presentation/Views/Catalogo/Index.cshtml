@@ -1,29 +1,44 @@
 ﻿@model List<CatalogoApp.Domain.Models.Item>
- 
-<h1>Catálogo de Videojuegos</h1>
- 
-<!-- Filtro por Genero -->
-<div>
-    <a asp-action="Index">Todos</a>
+
+<div class="page-header">
+    <h1 class="page-title">Catálogo</h1>
+    <a asp-action="Agregar" class="btn btn-primary">+ Agregar</a>
+</div>
+
+<!-- Filtros por género -->
+<div class="genre-filters">
+    <a asp-action="Index"
+       class="genre-btn @(ViewBag.GeneroActual == null ? "active" : "")">Todos</a>
     @foreach (var gen in ViewBag.Generos as List<string>)
     {
-        <span> | </span>
-        <a asp-action="Index" asp-route-genero="@gen">@gen</a>
+        <a asp-action="Index" asp-route-genero="@gen"
+           class="genre-btn @(ViewBag.GeneroActual == gen ? "active" : "")">@gen</a>
     }
 </div>
- 
-<hr />
- 
-<!-- Lista de Items -->
-<ul>
-    @foreach (var item in Model)
-    {
-        <li>
-            <a asp-action="Detalle" asp-route-id="@item.Id">@item.Titulo</a>
-            &mdash; @item.Genero &diams; @item.Ano
-        </li>
-    }
-</ul>
- 
-<hr />
-<a asp-action="Agregar">+ Agregar videojuego</a>
+
+<!-- Grid de items -->
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <p>No hay items todavía.</p>
+        <a asp-action="Agregar" class="btn btn-primary" style="margin-top:.75rem">Agregar el primero</a>
+    </div>
+}
+else
+{
+    <div class="item-grid">
+        @foreach (var item in Model)
+        {
+            <a asp-action="Detalle" asp-route-id="@item.Id" class="item-card" style="text-decoration:none">
+                <div class="item-card-title">@item.Titulo</div>
+                <div class="item-card-meta">
+                    <span class="badge-genre">@item.Genero</span>
+                    <span>@item.Ano</span>
+                </div>
+                <p style="font-size:.82rem; color:var(--muted); margin-top:.25rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden">
+                    @item.Descripcion
+                </p>
+            </a>
+        }
+    </div>
+}

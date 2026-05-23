@@ -41,7 +41,7 @@ public class CatalogoController : Controller
     {
         if (HttpContext.Session.GetString("Username") == null)
             return RedirectToAction("Login", "Account");
-        return View();
+        return View(new Item());
     }
 
     [HttpPost]
